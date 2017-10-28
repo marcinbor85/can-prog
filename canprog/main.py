@@ -7,18 +7,19 @@ Created on 23.10.2017
 import argparse
 import sys
 
-from canprog import __version__
+from canprog import __version__, __appname__
 
 from canprog.logger import log
 
-from canprog import canbus
+import canprog.logger
+import logging
 
 from canprog import protocols
 
-from canprog.bootloader import core
+import can
 
 def config_parser():
-    parser = argparse.ArgumentParser(prog='canprog', description='Command-line tool to flashing devices by CAN-BUS', add_help=False)
+    parser = argparse.ArgumentParser(prog=__appname__, description='Command-line tool to flashing devices by CAN-BUS', add_help=False)
 
     config = parser.add_argument_group('Configuration')
     config.add_argument('-n','--name', action='store', default='slcan0', help='interface name (default: slcan0)')
@@ -45,7 +46,6 @@ def config_parser():
     parser_commands = parser.add_subparsers(title='Target commands',
                                        description='Supported target operations',
                                        dest='command')
-    parser_commands.required = True
      
     parser_write = parser_commands.add_parser('write', help='write file to target', add_help=False)
     config_write = parser_write.add_argument_group('write options')
@@ -59,7 +59,6 @@ def config_parser():
     parser_commands.add_parser('go', help='go program application', add_help=False)
     parser_commands.add_parser('lock', help='enable readout protection', add_help=False)
     parser_commands.add_parser('unlock', help='disable readout protection', add_help=False)
-    parser_commands.add_parser('info', help='get target info', add_help=False)
 
     return parser
 
@@ -69,12 +68,11 @@ def main():
     
     params = parser.parse_args()
     
-    try:
-        iface_class = canbus.get_can_interface_class_by_name(params.interface)
-    except NotImplementedError as e:
-        parser.error(e)
+    if params.verbose:
+        canprog.logger.set_level(logging.DEBUG)
     
-    iface = iface_class(params.name)
+    if params.interface == 'socketcan':
+        iface = can.interface.Bus(channel=params.name, bustype='socketcan_native')
     
     try:
         protocol_class = protocols.get_protocol_class_by_name(params.protocol)
@@ -83,19 +81,21 @@ def main():
         
     protocol = protocol_class(iface)
     
-    protocol.connect()
-    
+    log.info('Trying to connect target')
     try:
-        
-        
-        protocol.erase()
-        
-    except NotImplementedError as e:
-        parser.error(e)
+        protocol.connect()
+          
+        log.info('Connected')
+        #protocol.erase()
+
+    except Exception as e:
+        log.error(e)
     finally:
         protocol.disconnect()
-
-
+              
+        log.info('Disconnected')
+    
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main())
