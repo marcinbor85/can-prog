@@ -88,42 +88,32 @@ class AbstractProtocol(object):
         try:
             self._connect()
         except AttributeError as e:
-            raise Exception('Connect method not implemented')
-        except Exception as e:
-            raise Exception('Connecting error: '+str(e))
+            raise NotImplementedError('Connect method not implemented')
     
     def disconnect(self):
         try:
             self._disconnect()
         except AttributeError as e:
-            raise Exception('Disconnect method not implemented')
-        except Exception as e:
-            raise Exception('Disconnecting error: '+str(e))
+            raise NotImplementedError('Disconnect method not implemented')
     
     def read(self, address, size):
         try:
             return self._read(address, size)
         except AttributeError as e:
-            raise Exception('Read method not implemented')
-        except Exception as e:
-            raise Exception('Read error: '+str(e))
+            raise NotImplementedError('Read method not implemented')
     
     def write(self, address, data):
         try:
             self._write(address, data)
         except AttributeError as e:
-            raise Exception('Write method not implemented')
-        except Exception as e:
-            raise Exception('Writing error: '+str(e))
+            raise NotImplementedError('Write method not implemented')
     
     def erase(self):
         try:
             self._erase()
         except AttributeError as e:
-            raise Exception('Erase method not implemented')
-        except Exception as e:
-            raise Exception('Erasing error: '+str(e))
-    
+            raise NotImplementedError('Erase method not implemented')
+        
     def lock(self):
         raise NotImplementedError('not implemented yet')
     
@@ -134,7 +124,5 @@ class AbstractProtocol(object):
         try:
             self._go(address)
         except AttributeError as e:
-            raise Exception('Go method not implemented')
-        except Exception as e:
-            raise Exception('Starting error: '+str(e))
+            raise NotImplementedError('Go method not implemented')
  

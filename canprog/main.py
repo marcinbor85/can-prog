@@ -64,16 +64,47 @@ def config_parser():
 
     return parser
 
+def connect(protocol):
+    try:
+        log.info('Connecting target')
+        protocol.connect()          
+        log.info('Connected')
+    except Exception as e:
+        raise Exception('Connecting error: '+str(e))
+
+def disconnect(protocol):
+    try:
+        log.info('Disconnecting target')
+        protocol.disconnect()
+        log.info('Disconnected')
+    except Exception as e:
+        raise Exception('Disconnecting error: '+str(e))
+    
 def go(protocol, address):
-    log.info('Starting application')
-    protocol.go(address)
-    log.info('Successful')
+    try:
+        log.info('Starting application')
+        protocol.go(address)
+        log.info('Successful')
+    except Exception as e:
+        raise Exception('Starting error: '+str(e))
     
 def erase(protocol):
-    log.info('Erasing memory. Please wait...')
-    protocol.erase()
-    log.info('Successful')
-    
+    try:
+        log.info('Erasing memory. Please wait...')
+        protocol.erase()
+        log.info('Successful')
+    except Exception as e:
+        raise Exception('Erasing error: '+str(e))
+
+def read(protocol, address, size):
+    try:
+        log.info('Reading memory. Please wait...')
+        d = protocol.read(0x08000000, 260)
+        print(d)
+        log.info('Successful')
+    except Exception as e:
+        raise Exception('Read error: '+str(e))
+        
 def main():
     
     parser = config_parser()
@@ -94,10 +125,7 @@ def main():
     protocol = protocol_class(iface)
     
     try:
-        log.info('Connecting target')
-        protocol.connect()          
-        log.info('Connected')
-        
+        connect(protocol)
         
         if params.command == 'go':
             go(protocol, params.address)
@@ -117,18 +145,11 @@ def main():
             if params.go:
                 go(protocol, params.address)
         elif params.command == 'read':
-            log.info('Reading memory. Please wait...')
-            d = protocol.read(0x08000000, 260)
-            print(d)
-            log.info('Successful')
+            read(protocol)
         else:
             log.info('Nothing to do...')
-            
-        #protocol.erase()
         
-        log.info('Disconnecting target')
-        protocol.disconnect()
-        log.info('Disconnected')
+        disconnect(protocol)
     except Exception as e:
         log.error(e)
         sys.exit(-1)
