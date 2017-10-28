@@ -7,6 +7,8 @@ from . import AbstractProtocol
 
 import can
 
+import struct
+
 from canprog.logger import log
 
 CMD_INIT = 0x79
@@ -177,4 +179,15 @@ class STM32Protocol(AbstractProtocol):
         
     def disconnect(self):
         pass
+    
+    def go(self, address):
+        
+        adr = struct.pack(">I", address)
+        self._send(can.Message(arbitration_id=CMD_GO, data=adr, extended_id=False))
+        
+        msg = self._recv(checker=self._check_ack_or_noack(CMD_GO))
+        log.debug(msg)
+        
+        if msg.data[0] == BYTE_ACK:
+            log.info('GO command successfull')
         

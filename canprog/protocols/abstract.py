@@ -28,7 +28,7 @@ class AbstractProtocol(object):
         try:
             self._iface.send(msg)
         except can.CanError:
-            raise IOError('Initial message sending error')
+            raise IOError('Sending error')
     
     def _recv(self, timeout=1.0, checker=None):
         timeout = 1.0
@@ -44,7 +44,7 @@ class AbstractProtocol(object):
                 break
 
         if not response:
-            raise TimeoutError('Connecting timeout')
+            raise TimeoutError('Receiving timeout')
         
         return response
         
@@ -69,6 +69,6 @@ class AbstractProtocol(object):
     def unlock(self):
         raise NotImplementedError('not implemented yet')
     
-    def go(self):
+    def go(self, address):
         raise NotImplementedError('not implemented yet')
  
