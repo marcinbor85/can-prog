@@ -16,10 +16,39 @@ if 'win' in sys.platform.lower():
 else:
     current_time = time.time
     
+def canframe_to_string(msg):
+
+    array = []
+    
+    flags = ''
+    if msg.is_remote_frame:
+        flags += 'R'
+    if msg.is_error_frame:
+        flags += 'E'
+        
+    if flags != '':
+        array.append(flags)
+    
+    if msg.is_extended_id:
+        aid = '{:08X}'.format(msg.arbitration_id)
+    else:
+        aid = '{:03X}'.format(msg.arbitration_id)
+        
+    array.append(aid)
+    array.append(str(msg.dlc))
+
+    data = ''.join(['{:02X}'.format(b) for b in msg.data])
+    
+    if data != '':
+        array.append(data)
+
+    return ':'.join(array)
+    
 class AbstractProtocol(object):
     '''
     classdocs
     '''
+    RECV_TIMEOUT = 1.0
 
     def __init__(self, iface):
         if not isinstance(iface, can.BusABC):
@@ -29,15 +58,14 @@ class AbstractProtocol(object):
     def _send(self, msg):
         try:
             self._iface.send(msg)
-            log.debug('TX: '+str(msg))
+            log.debug('TX: '+canframe_to_string(msg))
         except can.CanError:
             raise IOError('Sending error')
     
-    def _recv(self, timeout=1.0, checker=None):
-        timeout = 1.0
+    def _recv(self, checker=None):
         time = current_time()
         response = None
-        while current_time() - time < timeout:
+        while current_time() - time < self.RECV_TIMEOUT:
             frame = self._iface.recv(0.0)
             if frame:
                 if checker != None:
@@ -49,7 +77,7 @@ class AbstractProtocol(object):
         if not response:
             raise TimeoutError('Receiving timeout')
         
-        log.debug('RX: '+str(response))
+        log.debug('RX: '+canframe_to_string(response))
         return response
         
     def connect(self):
