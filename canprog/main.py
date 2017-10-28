@@ -55,7 +55,7 @@ def config_parser():
     config_read = parser_read.add_argument_group('read options')
     config_read.add_argument('output', action='store', help='output filename')
 
-    parser_commands.add_parser('erase', help='erase target memory', add_help=False)
+    parser_commands.add_parser('erase', help='erase global target memory', add_help=False)
     parser_commands.add_parser('go', help='go program application', add_help=False)
     parser_commands.add_parser('lock', help='enable readout protection', add_help=False)
     parser_commands.add_parser('unlock', help='disable readout protection', add_help=False)
