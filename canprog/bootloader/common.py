@@ -5,7 +5,7 @@ Created on 23.10.2017
 @author: mborowicz
 '''
 
-class AbstractFileLoader(object):
+class AbstractFileManager(object):
     '''
     classdocs
     '''
@@ -15,4 +15,14 @@ class AbstractFileLoader(object):
         '''
         Constructor
         '''
+    
+    def get_data(self):
+        pass
+    
+    def set_data(self):
+        pass
+        
+    @property
+    def size(self):
+        return 0
         

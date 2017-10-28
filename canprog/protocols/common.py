@@ -4,35 +4,42 @@ Created on 23.10.2017
 @author: mborowicz
 '''
 
+from canprog.canbus import AbstractCAN
+
 class AbstractProtocol(object):
     '''
     classdocs
     '''
 
 
-    def __init__(self, params):
-        '''
-        Constructor
-        '''
+    def __init__(self, iface):
+        if not isinstance(iface, AbstractCAN):
+            raise Exception('canbus interface not compatible')
+        self._iface = iface
         
-    def init(self):
-        raise Exception('not implemented yet')
+    def connect(self):
+        raise NotImplementedError('not implemented yet')
     
-    def read_flash(self, address, size):
-        raise Exception('not implemented yet')
+    def disconnect(self):
+        raise NotImplementedError('not implemented yet')
     
-    def write_flash(self, address, data):
-        raise Exception('not implemented yet')
+    def read(self, address, size):
+        raise NotImplementedError('not implemented yet')
     
-    def erase_flash(self):
-        raise Exception('not implemented yet')
+    def write(self, address, data):
+        raise NotImplementedError('not implemented yet')
+    
+    def erase(self):
+        raise NotImplementedError('not implemented yet')
     
     def lock(self):
-        raise Exception('not implemented yet')
+        raise NotImplementedError('not implemented yet')
     
     def unlock(self):
-        raise Exception('not implemented yet')
+        raise NotImplementedError('not implemented yet')
     
     def go(self):
-        raise Exception('not implemented yet')
-    
+        raise NotImplementedError('not implemented yet')
+
+    def info(self):
+        raise NotImplementedError('not implemented yet')    

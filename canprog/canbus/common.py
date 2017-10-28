@@ -10,20 +10,22 @@ class AbstractCAN(object):
     classdocs
     '''
     
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, name):
+        if not isinstance(name, str):
+            raise TypeError('name should be string type')
+        self._name = name
     
     def open(self):
-        raise Exception('not implemented yet')
+        raise NotImplementedError('not implemented yet')
     
     def close(self):
-        raise Exception('not implemented yet')
+        raise NotImplementedError('not implemented yet')
     
     def send(self):
-        raise Exception('not implemented yet')
+        raise NotImplementedError('not implemented yet')
     
     def recv(self):
-        raise Exception('not implemented yet')
+        raise NotImplementedError('not implemented yet')
     
 class CanFrame(object):
     def __init__(self, mid, data=None, dlc=None, remote=False, extended=False):
