@@ -86,32 +86,34 @@ class STM32Protocol(AbstractProtocol):
     def _check_ack_or_noack(self, arb_id):
         return self._check_response(arb_id, 1, (BYTE_ACK, BYTE_NOACK))
     
+    def _wait_for_ack(self, cmd):
+        self._recv(checker=self._check_ack(cmd))
+        
+    def _send_data(self, cmd, data=[]):
+        self._send(can.Message(arbitration_id=cmd, data=data, extended_id=False))
+    
     def _init(self):
-        self._send(can.Message(arbitration_id=CMD_INIT, data=[], extended_id=False))
-        msg = self._recv(checker=self._check_ack_or_noack(CMD_INIT))
-        log.debug(msg)
+        self._send_data(CMD_INIT)
+        self._recv(checker=self._check_ack_or_noack(CMD_INIT))
+        
+    def _recv_data(self, cmd, size=None):
+        msg = self._recv(checker=self._check_response(cmd, size))
+        return msg.data
         
     def _get_commands(self):
-        self._send(can.Message(arbitration_id=CMD_GET_COMMANDS, data=[], extended_id=False))
+        self._send_data(CMD_GET_COMMANDS)
 
-        msg = self._recv(checker=self._check_ack(CMD_GET_COMMANDS))
-        log.debug(msg)
-        msg = self._recv(checker=self._check_byte(CMD_GET_COMMANDS))
-        log.debug(msg)
-        commands_num = msg.data[0]
-        msg = self._recv(checker=self._check_byte(CMD_GET_COMMANDS))
-        log.debug(msg)
-        boot_version = msg.data[0]
+        self._wait_for_ack(CMD_GET_COMMANDS)
+        commands_num = self._recv_data(CMD_GET_COMMANDS, 1)[0]
+        boot_version = self._recv_data(CMD_GET_COMMANDS, 1)[0]
         
         commands = []
         for _ in range(commands_num):
-            msg = self._recv(checker=self._check_byte(CMD_GET_COMMANDS))
-            log.debug(msg)
-            commands.append(msg.data[0])
+            cmd = self._recv_data(CMD_GET_COMMANDS, 1)[0]
+            commands.append(cmd)
             
-        msg = self._recv(checker=self._check_ack(CMD_GET_COMMANDS))
-        log.debug(msg)
-        
+        self._wait_for_ack(CMD_GET_COMMANDS)
+
         for k, v in self._supported_commands.items():
             v['support'] = True if k in commands else False
 
@@ -119,44 +121,30 @@ class STM32Protocol(AbstractProtocol):
         
     def _get_version(self):
 
-        self._send(can.Message(arbitration_id=CMD_GET_VERSION, data=[], extended_id=False))
+        self._send_data(CMD_GET_VERSION)
 
-        msg = self._recv(checker=self._check_ack(CMD_GET_VERSION))
-        log.debug(msg)
-        msg = self._recv(checker=self._check_byte(CMD_GET_VERSION))
-        log.debug(msg)
-        msg = self._recv(checker=self._check_response(CMD_GET_VERSION, 2))
-        log.debug(msg)
-        option_msg = msg.data[0:2]
+        self._wait_for_ack(CMD_GET_VERSION)
+        self._recv_data(CMD_GET_VERSION, 1)
+        option_msg = self._recv_data(CMD_GET_VERSION, 2)[0:2]
         
-        msg = self._recv(checker=self._check_ack(CMD_GET_VERSION))
-        log.debug(msg)
+        self._wait_for_ack(CMD_GET_VERSION)
         
         self._read_protection_bytes = '0x{}'.format(''.join(['{:02X}'.format(i) for i in option_msg]))
     
     def _get_id(self):
+        self._send_data(CMD_GET_ID)
 
-        self._send(can.Message(arbitration_id=CMD_GET_ID, data=[], extended_id=False))
-
-        msg = self._recv(checker=self._check_ack(CMD_GET_ID))
-        log.debug(msg)
-        msg = self._recv(checker=self._check_response(CMD_GET_ID))
-        log.debug(msg)
-        chip_id = msg.data
-        msg = self._recv(checker=self._check_ack(CMD_GET_ID))
-        log.debug(msg)
+        self._wait_for_ack(CMD_GET_ID)
+        chip_id = self._recv_data(CMD_GET_ID)
+        self._wait_for_ack(CMD_GET_ID)
         
         self._chip_id = '0x{}'.format(''.join(['{:02X}'.format(i) for i in chip_id]))
         
-    def connect(self):
-
+    def _connect(self):
         self._init()
         log.info('Bootloader initialized')
         
         self._get_commands()       
-        """for _, v in self._supported_commands.items():
-            if v['support']:       
-                log.info('Supported command: {name}'.format(name=v['name']))"""
                 
         log.info('Bootloader version: {version}'.format(version=self._bootloader_version))
         
@@ -171,23 +159,16 @@ class STM32Protocol(AbstractProtocol):
             
             try:
                 name = CHIP_ID[int(self._chip_id,0)]
-            except:
+            except KeyError:
                 name = 'Unknown CHIP ID'
                 
             log.info('Chip ID: {hexid} - {name}'.format(hexid=self._chip_id, name=name))
         
-        
-    def disconnect(self):
+    def _disconnect(self):
         pass
     
-    def go(self, address):
+    def _go(self, address):
+        self._send_data(CMD_GO, struct.pack(">I", address))        
+        self._wait_for_ack(CMD_GO)
         
-        adr = struct.pack(">I", address)
-        self._send(can.Message(arbitration_id=CMD_GO, data=adr, extended_id=False))
-        
-        msg = self._recv(checker=self._check_ack_or_noack(CMD_GO))
-        log.debug(msg)
-        
-        if msg.data[0] == BYTE_ACK:
-            log.info('GO command successfull')
         
