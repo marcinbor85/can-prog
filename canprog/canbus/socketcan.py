@@ -7,12 +7,5 @@ Created on 23.10.2017
 from . import AbstractCAN
 
 class SocketCAN(AbstractCAN):
-    '''
-    classdocs
-    '''
-    
-    def __init__(self, params):
-        '''
-        Constructor
-        '''
+    pass
         

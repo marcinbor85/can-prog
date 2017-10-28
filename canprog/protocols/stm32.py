@@ -6,13 +6,10 @@ Created on 23.10.2017
 from . import AbstractProtocol
 
 class STM32Protocol(AbstractProtocol):
-    '''
-    classdocs
-    '''
-
-
-    def __init__(self, params):
-        '''
-        Constructor
-        '''
+    
+    def connect(self):
+        pass
+    
+    def disconnect(self):
+        pass
         

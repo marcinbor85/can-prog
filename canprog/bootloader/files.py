@@ -4,9 +4,9 @@ Created on 23.10.2017
 @author: mborowicz
 '''
 
-from . import AbstractFileLoader
+from . import AbstractFileManager
 
-class HexFileLoader(AbstractFileLoader):
+class HexFileManager(AbstractFileManager):
     '''
     classdocs
     '''
@@ -16,7 +16,7 @@ class HexFileLoader(AbstractFileLoader):
         Constructor
         '''
         
-class BinFileLoader(AbstractFileLoader):
+class BinFileManager(AbstractFileManager):
     '''
     classdocs
     '''
