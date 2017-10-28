@@ -4,13 +4,98 @@ Created on 23.10.2017
 @author: mborowicz
 '''
 
-import canbus
+import argparse
+import sys
 
-def run():
-    f = canbus.CanFrame(mid=10, data=bytes([1,2,3]), dlc=1, remote=False, extended=False)
-    print(f.is_extended)
-    print(f)
-    print(f.data[0])
+from canprog import __version__
+
+from canprog.logger import log
+
+from canprog import canbus
+
+from canprog import protocols
+
+from canprog.bootloader import core
+
+def config_parser():
+    parser = argparse.ArgumentParser(prog='canprog', description='Command-line tool to flashing devices by CAN-BUS', add_help=False)
+
+    config = parser.add_argument_group('Configuration')
+    config.add_argument('-n','--name', action='store', default='slcan0', help='interface name (default: slcan0)')
+    config.add_argument('-i','--interface', action='store', choices=('socketcan',), default='socketcan', help='interface type (default: socketcan)')
+    config.add_argument('-p','--protocol', action='store', choices=('stm32',), default='stm32', help='bootloader protocol (default: stm32)')
+    config.add_argument('-f','--format', action='store', choices=('hex','bin'), default='hex', help='file format (default: hex)')
+    config.add_argument('-c','--config', action='store', default=None, help='optional configuration file')
+    
+    config_write = parser.add_argument_group('Write options')    
+    config_write.add_argument('-e','--erase', action='store_true', default=False, help='erase memory before write')
+    config_write.add_argument('-v','--verify', action='store_true', default=False, help='verify memory after write')
+    
+    config_read = parser.add_argument_group('Read options')
+    config_read.add_argument('-s','--size', action='store', type=lambda x: int(x,0), default=0x8000, help='data size to read (default: 0x8000)')
+    
+    config_readwrite = parser.add_argument_group('Read/Write/Go options')
+    config_readwrite.add_argument('-a','--address', action='store', type=lambda x: int(x,0), default=0x08000000, help='start memory address (default: 0x08000000)')
+    
+    others = parser.add_argument_group('Others options')
+    others.add_argument('-h','--help', action='help', help='show this help message and exit')
+    others.add_argument('--verbose', action='store_true', default=False, help='enable verbose output')
+    others.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
+
+    parser_commands = parser.add_subparsers(title='Target commands',
+                                       description='Supported target operations',
+                                       dest='command')
+    parser_commands.required = True
+     
+    parser_write = parser_commands.add_parser('write', help='write file to target', add_help=False)
+    config_write = parser_write.add_argument_group('write options')
+    config_write.add_argument('input', action='store', help='input filename')
+
+    parser_read = parser_commands.add_parser('read', help='read target to file', add_help=False)
+    config_read = parser_read.add_argument_group('read options')
+    config_read.add_argument('output', action='store', help='output filename')
+
+    parser_commands.add_parser('erase', help='erase target memory', add_help=False)
+    parser_commands.add_parser('go', help='go program application', add_help=False)
+    parser_commands.add_parser('lock', help='enable readout protection', add_help=False)
+    parser_commands.add_parser('unlock', help='disable readout protection', add_help=False)
+    parser_commands.add_parser('info', help='get target info', add_help=False)
+
+    return parser
+
+def main():
+    
+    parser = config_parser()
+    
+    params = parser.parse_args()
+    
+    try:
+        iface_class = canbus.get_can_interface_class_by_name(params.interface)
+    except NotImplementedError as e:
+        parser.error(e)
+    
+    iface = iface_class(params.name)
+    
+    try:
+        protocol_class = protocols.get_protocol_class_by_name(params.protocol)
+    except NotImplementedError as e:
+        parser.error(e)
+        
+    protocol = protocol_class(iface)
+    
+    protocol.connect()
+    
+    try:
+        
+        
+        protocol.erase()
+        
+    except NotImplementedError as e:
+        parser.error(e)
+    finally:
+        protocol.disconnect()
+
+
 
 if __name__ == '__main__':
-    run()
+    sys.exit(main())
