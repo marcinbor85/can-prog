@@ -1,11 +1,12 @@
 from .common import AbstractFileManager
 
-from . import files
+from . import hexfile
+from . import binfile
 
 def get_file_manager_class_by_name(name):
     if name == 'hex':
-        return files.HexFileManager
+        return hexfile.HexFileManager
     elif name == 'bin':
-        return files.BinFileManager
+        return binfile.BinFileManager
     else:
         raise NotImplementedError('unknown file format type')
