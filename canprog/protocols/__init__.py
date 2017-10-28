@@ -1,4 +1,4 @@
-from .common import AbstractProtocol
+from canprog.protocols.abstract import AbstractProtocol
 
 from . import stm32
 

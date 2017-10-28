@@ -1,4 +1,4 @@
-from .common import AbstractFileManager
+from canprog.files.abstract import AbstractFileManager
 
 from . import hexfile
 from . import binfile
