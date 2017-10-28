@@ -10,6 +10,7 @@ import can
 import struct
 
 from canprog.logger import log
+from can.interfaces.usb2can import timeout
 
 CMD_GET_COMMANDS = 0x00
 CMD_GET_VERSION = 0x01
@@ -191,14 +192,30 @@ class STM32Protocol(AbstractProtocol):
     def _erase(self):
         self._send_data(CMD_ERASE, (0xFF,))        
         self._wait_for_ack(CMD_ERASE)
-        self._wait_for_ack(CMD_ERASE, timeout=30.0)
+        i = 1
+        while True:
+            try:
+                self._wait_for_ack(CMD_ERASE, timeout=1.0)
+                break
+            except TimeoutError as e:
+                log.info('Waiting... {}s'.format(i))
+                if i >= 30:
+                    raise
+                else:                    
+                    i += 1
     
     @_check_support(CMD_WRITE_MEMORY)  
     def _write(self, address, data):
         size = len(data)
         
+        last_p = -1
         for i in range(0, size, 256):
+            p = int(100.0 * i / size)
+            if (last_p == -1) or (p - last_p >= 10):
+                log.info('Progress: {}% / 100%'.format(p))
+                last_p = p
             self._write_page(address+i, data[i:i+256])
+        log.info('Progress: 100% / 100%')
     
     def _write_page(self, address, data):
         size = len(data)
