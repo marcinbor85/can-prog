@@ -9,6 +9,8 @@ import can
 import sys
 import time
 
+from canprog.logger import log
+
 if 'win' in sys.platform.lower():
     current_time = time.clock
 else:
@@ -27,6 +29,7 @@ class AbstractProtocol(object):
     def _send(self, msg):
         try:
             self._iface.send(msg)
+            log.debug('TX: '+str(msg))
         except can.CanError:
             raise IOError('Sending error')
     
@@ -46,13 +49,24 @@ class AbstractProtocol(object):
         if not response:
             raise TimeoutError('Receiving timeout')
         
+        log.debug('RX: '+str(response))
         return response
         
     def connect(self):
-        raise NotImplementedError('not implemented yet')
+        try:
+            self._connect()
+        except AttributeError as e:
+            raise Exception('Connect method not implemented')
+        except Exception as e:
+            raise Exception('Connecting error: '+str(e))
     
     def disconnect(self):
-        raise NotImplementedError('not implemented yet')
+        try:
+            self._disconnect()
+        except AttributeError as e:
+            raise Exception('Disconnect method not implemented')
+        except Exception as e:
+            raise Exception('Disconnecting error: '+str(e))
     
     def read(self, address, size):
         raise NotImplementedError('not implemented yet')
@@ -70,5 +84,10 @@ class AbstractProtocol(object):
         raise NotImplementedError('not implemented yet')
     
     def go(self, address):
-        raise NotImplementedError('not implemented yet')
+        try:
+            self._go(address)
+        except AttributeError as e:
+            raise Exception('Go method not implemented')
+        except Exception as e:
+            raise Exception('Starting application error: '+str(e))
  

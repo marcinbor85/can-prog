@@ -81,21 +81,27 @@ def main():
         
     protocol = protocol_class(iface)
     
-    log.info('Trying to connect target')
     try:
-        protocol.connect()
-          
+        log.info('Trying to connect target')
+        protocol.connect()          
         log.info('Connected')
+        
+        
+        if params.command == 'go':
+            log.info('Trying to start application')
+            protocol.go(params.address)
+            log.info('Starting application successfull')
+        else:
+            log.info('Nothing to do...')
+            
         #protocol.erase()
-
+        
+        log.info('Trying to disconnect target')
+        protocol.disconnect()
+        log.info('Disconnected')
     except Exception as e:
         log.error(e)
-    finally:
-        protocol.disconnect()
-              
-        log.info('Disconnected')
-    
-    return 0
+        sys.exit(-1)
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()
