@@ -5,7 +5,7 @@ from canprog import __appname__
 def get_log(name):
     log = logging.getLogger(name)
     h = logging.StreamHandler()
-    formatter = logging.Formatter('[%(module)-8s] [%(asctime)s,%(msecs)03d] [%(levelname)-8s] - %(message)s',datefmt='%H.%M.%S')
+    formatter = logging.Formatter('[%(asctime)s.%(msecs)03d] %(module)s %(levelname)s: %(message)s',datefmt='%H:%M:%S')
     h.setFormatter(formatter)
     log.addHandler(h)    
     return log
