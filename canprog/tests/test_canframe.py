@@ -5,7 +5,7 @@ Created on 26.10.2017
 '''
 import unittest
 
-import canbus
+from canprog import canbus
 
 class Test(unittest.TestCase):
 
