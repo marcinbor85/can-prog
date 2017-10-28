@@ -117,5 +117,5 @@ class AbstractProtocol(object):
         except AttributeError as e:
             raise Exception('Go method not implemented')
         except Exception as e:
-            raise Exception('Starting application error: '+str(e))
+            raise Exception('Starting error: '+str(e))
  

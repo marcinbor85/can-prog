@@ -168,7 +168,9 @@ class STM32Protocol(AbstractProtocol):
         pass
     
     def _go(self, address):
+        if not self._supported_commands[CMD_GO]['support']:
+            raise Exception('No support GO command')
         self._send_data(CMD_GO, struct.pack(">I", address))        
         self._wait_for_ack(CMD_GO)
-        
+    
         

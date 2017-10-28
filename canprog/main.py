@@ -90,7 +90,7 @@ def main():
         if params.command == 'go':
             log.info('Trying to start application')
             protocol.go(params.address)
-            log.info('Starting application successfull')
+            log.info('Starting successfull')
         else:
             log.info('Nothing to do...')
             
