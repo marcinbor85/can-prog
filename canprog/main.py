@@ -91,6 +91,10 @@ def main():
             log.info('Trying to start application')
             protocol.go(params.address)
             log.info('Starting successfull')
+        elif params.command == 'erase':
+            log.info('Trying to erase memory. Please wait...')
+            protocol.erase()
+            log.info('Erasing successfull')
         else:
             log.info('Nothing to do...')
             

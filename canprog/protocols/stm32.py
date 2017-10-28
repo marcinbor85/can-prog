@@ -86,8 +86,8 @@ class STM32Protocol(AbstractProtocol):
     def _check_ack_or_noack(self, arb_id):
         return self._check_response(arb_id, 1, (BYTE_ACK, BYTE_NOACK))
     
-    def _wait_for_ack(self, cmd):
-        self._recv(checker=self._check_ack(cmd))
+    def _wait_for_ack(self, cmd, timeout=None):
+        self._recv(timeout=timeout, checker=self._check_ack(cmd))
         
     def _send_data(self, cmd, data=[]):
         self._send(can.Message(arbitration_id=cmd, data=data, extended_id=False))
@@ -172,5 +172,13 @@ class STM32Protocol(AbstractProtocol):
             raise Exception('No support GO command')
         self._send_data(CMD_GO, struct.pack(">I", address))        
         self._wait_for_ack(CMD_GO)
+        
+    def _erase(self):
+        if not self._supported_commands[CMD_ERASE]['support']:
+            raise Exception('No support ERASE command')
+        self._send_data(CMD_ERASE, (0xFF,))        
+        self._wait_for_ack(CMD_ERASE)
+        self._wait_for_ack(CMD_ERASE, timeout=30.0)
+        
     
         

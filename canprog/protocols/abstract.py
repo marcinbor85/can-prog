@@ -62,10 +62,14 @@ class AbstractProtocol(object):
         except can.CanError:
             raise IOError('Sending error')
     
-    def _recv(self, checker=None):
+    def _recv(self, timeout=None, checker=None):
+        if timeout == None:
+            t = self.RECV_TIMEOUT
+        else:
+            t = timeout
         time = current_time()
         response = None
-        while current_time() - time < self.RECV_TIMEOUT:
+        while current_time() - time < t:
             frame = self._iface.recv(0.0)
             if frame:
                 if checker != None:
@@ -103,7 +107,12 @@ class AbstractProtocol(object):
         raise NotImplementedError('not implemented yet')
     
     def erase(self):
-        raise NotImplementedError('not implemented yet')
+        try:
+            self._erase()
+        except AttributeError as e:
+            raise Exception('Erase method not implemented')
+        except Exception as e:
+            raise Exception('Erasing error: '+str(e))
     
     def lock(self):
         raise NotImplementedError('not implemented yet')
