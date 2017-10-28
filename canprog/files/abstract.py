@@ -16,8 +16,8 @@ class AbstractFileManager(object):
         Constructor
         '''
     
-    def get_data(self):
-        pass
+    def get_segments(self):
+        return self._get_segments()
     
     def set_data(self):
         pass
