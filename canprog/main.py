@@ -15,6 +15,7 @@ import canprog.logger
 import logging
 
 from canprog import protocols
+from canprog import files
 
 import can
 
@@ -31,6 +32,7 @@ def config_parser():
     config_write = parser.add_argument_group('Write options')    
     config_write.add_argument('-e','--erase', action='store_true', default=False, help='erase memory before write')
     config_write.add_argument('-v','--verify', action='store_true', default=False, help='verify memory after write')
+    config_write.add_argument('-g','--go', action='store_true', default=False, help='start application after write')
     
     config_read = parser.add_argument_group('Read options')
     config_read.add_argument('-s','--size', action='store', type=lambda x: int(x,0), default=0x8000, help='data size to read (default: 0x8000)')
@@ -62,6 +64,16 @@ def config_parser():
 
     return parser
 
+def go(protocol, address):
+    log.info('Starting application')
+    protocol.go(address)
+    log.info('Successful')
+    
+def erase(protocol):
+    log.info('Erasing memory. Please wait...')
+    protocol.erase()
+    log.info('Successful')
+    
 def main():
     
     parser = config_parser()
@@ -82,25 +94,39 @@ def main():
     protocol = protocol_class(iface)
     
     try:
-        log.info('Trying to connect target')
+        log.info('Connecting target')
         protocol.connect()          
         log.info('Connected')
         
         
         if params.command == 'go':
-            log.info('Trying to start application')
-            protocol.go(params.address)
-            log.info('Starting successfull')
+            go(protocol, params.address)
         elif params.command == 'erase':
-            log.info('Trying to erase memory. Please wait...')
-            protocol.erase()
-            log.info('Erasing successfull')
+            erase(protocol)
+        elif params.command == 'write':
+            if params.erase:
+                erase(protocol)
+                
+            h = files.hexfile.HexFileManager(params.input)
+            log.info('Writing memory. Please wait...')
+            for address, data in h.get_segments():
+                log.info('Writing segment 0x{address:08X}:{size}'.format(address=address, size=len(data)))
+                protocol.write(address, data)
+            log.info('Successful')
+            
+            if params.go:
+                go(protocol, params.address)
+        elif params.command == 'read':
+            log.info('Reading memory. Please wait...')
+            d = protocol.read(0x08000000, 260)
+            print(d)
+            log.info('Successful')
         else:
             log.info('Nothing to do...')
             
         #protocol.erase()
         
-        log.info('Trying to disconnect target')
+        log.info('Disconnecting target')
         protocol.disconnect()
         log.info('Disconnected')
     except Exception as e:
