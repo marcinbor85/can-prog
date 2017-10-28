@@ -104,7 +104,12 @@ class AbstractProtocol(object):
         raise NotImplementedError('not implemented yet')
     
     def write(self, address, data):
-        raise NotImplementedError('not implemented yet')
+        try:
+            self._write(address, data)
+        except AttributeError as e:
+            raise Exception('Write method not implemented')
+        except Exception as e:
+            raise Exception('Writing error: '+str(e))
     
     def erase(self):
         try:
