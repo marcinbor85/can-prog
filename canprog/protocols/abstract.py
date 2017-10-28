@@ -101,7 +101,12 @@ class AbstractProtocol(object):
             raise Exception('Disconnecting error: '+str(e))
     
     def read(self, address, size):
-        raise NotImplementedError('not implemented yet')
+        try:
+            return self._read(address, size)
+        except AttributeError as e:
+            raise Exception('Read method not implemented')
+        except Exception as e:
+            raise Exception('Read error: '+str(e))
     
     def write(self, address, data):
         try:

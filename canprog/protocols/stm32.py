@@ -11,7 +11,6 @@ import struct
 
 from canprog.logger import log
 
-CMD_INIT = 0x79
 CMD_GET_COMMANDS = 0x00
 CMD_GET_VERSION = 0x01
 CMD_GET_ID = 0x02
@@ -27,6 +26,8 @@ CMD_READOUT_UNPROTECT = 0x92
 
 BYTE_ACK = 0x79
 BYTE_NOACK = 0x1F
+BYTE_INIT = 0x79
+BYTE_DATA = 0x04
 
 CHIP_ID = {0x412: "STM32F Low-density",
            0x410: "STM32F Medium-density",
@@ -103,8 +104,8 @@ class STM32Protocol(AbstractProtocol):
         self._send(can.Message(arbitration_id=cmd, data=data, extended_id=False))
     
     def _init(self):
-        self._send_data(CMD_INIT)
-        self._recv(checker=self._check_ack_or_noack(CMD_INIT))
+        self._send_data(BYTE_INIT)
+        self._recv(checker=self._check_ack_or_noack(BYTE_INIT))
         
     def _recv_data(self, cmd, size=None):
         msg = self._recv(checker=self._check_response(cmd, size))
@@ -194,7 +195,49 @@ class STM32Protocol(AbstractProtocol):
     
     @_check_support(CMD_WRITE_MEMORY)  
     def _write(self, address, data):
-        self._send_data(CMD_WRITE_MEMORY, (0xFF,))        
+        size = len(data)
+        
+        for i in range(0, size, 256):
+            self._write_page(address+i, data[i:i+256])
+    
+    def _write_page(self, address, data):
+        size = len(data)
+        self._send_data(CMD_WRITE_MEMORY, struct.pack(">IB", address, size - 1))        
         self._wait_for_ack(CMD_WRITE_MEMORY)
+        
+        for i in range(0, size, 8):
+            self._send_data(BYTE_DATA, data[i:i+8])      
+            self._wait_for_ack(CMD_WRITE_MEMORY)
+        
+        self._wait_for_ack(CMD_WRITE_MEMORY)
+        
+    @_check_support(CMD_READ_MEMORY)  
+    def _read(self, address, size):
+
+        data = bytearray()
+        while size > 0:
+            to_read = min(256, size)
+            
+            page = self._read_page(address, to_read)
+            data += page
+            
+            address += to_read
+            size -= to_read
+        
+        return data
+    
+    def _read_page(self, address, size):
+        self._send_data(CMD_READ_MEMORY, struct.pack(">IB", address, size - 1))        
+        self._wait_for_ack(CMD_READ_MEMORY)
+        
+        page = bytearray()
+        for _ in range(0, size, 8):
+            data = self._recv_data(CMD_READ_MEMORY)
+            page += data
+        
+        self._wait_for_ack(CMD_READ_MEMORY)
+        
+        return page
+        
 
         
