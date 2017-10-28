@@ -45,23 +45,33 @@ CHIP_ID = {0x412: "STM32F Low-density",
            0x432: "STM32F37x & F38x",
            0x444: "STM32F050x"} 
 
+def _check_support(cmd):
+    def func_wrapper(function):
+        def call_wrapper(*args):
+            stm32 = args[0]
+            command = stm32._supported_commands[cmd]
+            if not command['support']:
+                raise NotImplementedError('No support {name} command'.format(name=command['name']))
+            return function(*args)
+        return call_wrapper
+    return func_wrapper
 
 class STM32Protocol(AbstractProtocol):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._supported_commands = {  CMD_GET_COMMANDS: {'name': 'get', 'support': False},
-                                      CMD_GET_VERSION: {'name': 'get_version', 'support': False},
-                                      CMD_GET_ID: {'name': 'get_id', 'support': False},
-                                      CMD_CHANGE_SPEED: {'name': 'change_speed', 'support': False},
-                                      CMD_READ_MEMORY: {'name': 'read_memory', 'support': False},
-                                      CMD_GO: {'name': 'go', 'support': False},
-                                      CMD_WRITE_MEMORY: {'name': 'write_memory', 'support': False},
-                                      CMD_ERASE: {'name': 'erase', 'support': False},
-                                      CMD_WRITE_PROTECT: {'name': 'write_protect', 'support': False},
-                                      CMD_WRITE_UNPROTECT: {'name': 'write_unprotect', 'support': False},
-                                      CMD_READOUT_PROTECT: {'name': 'readout_protect', 'support': False},
-                                      CMD_READOUT_UNPROTECT: {'name': 'readout_unprotect', 'support': False} }
+        self._supported_commands = {  CMD_GET_COMMANDS: {'name': 'GET', 'support': False},
+                                      CMD_GET_VERSION: {'name': 'GET_VERSION', 'support': False},
+                                      CMD_GET_ID: {'name': 'GET_ID', 'support': False},
+                                      CMD_CHANGE_SPEED: {'name': 'CHANGE_SPEED', 'support': False},
+                                      CMD_READ_MEMORY: {'name': 'READ_MEMORY', 'support': False},
+                                      CMD_GO: {'name': 'GO', 'support': False},
+                                      CMD_WRITE_MEMORY: {'name': 'WRITE_MEMORY', 'support': False},
+                                      CMD_ERASE: {'name': 'ERASE', 'support': False},
+                                      CMD_WRITE_PROTECT: {'name': 'WRITE_PROTECT', 'support': False},
+                                      CMD_WRITE_UNPROTECT: {'name': 'WRITE_UNPROTECT', 'support': False},
+                                      CMD_READOUT_PROTECT: {'name': 'READOUT_PROTECT', 'support': False},
+                                      CMD_READOUT_UNPROTECT: {'name': 'READOUT_UNPROTECT', 'support': False} }
     
     def _check_response(self, arb_id, dlc=None, ack_bytes=None):
         def _check_message(msg):
@@ -118,7 +128,8 @@ class STM32Protocol(AbstractProtocol):
             v['support'] = True if k in commands else False
 
         self._bootloader_version = '{}.{}'.format((boot_version>>4)&0x0F, (boot_version)&0x0F)
-        
+    
+    @_check_support(CMD_GET_VERSION)
     def _get_version(self):
 
         self._send_data(CMD_GET_VERSION)
@@ -131,6 +142,7 @@ class STM32Protocol(AbstractProtocol):
         
         self._read_protection_bytes = '0x{}'.format(''.join(['{:02X}'.format(i) for i in option_msg]))
     
+    @_check_support(CMD_GET_ID)
     def _get_id(self):
         self._send_data(CMD_GET_ID)
 
@@ -148,13 +160,13 @@ class STM32Protocol(AbstractProtocol):
                 
         log.info('Bootloader version: {version}'.format(version=self._bootloader_version))
         
-        if self._supported_commands[CMD_GET_VERSION]['support']:
-            self._get_version()
-                
+        try:
+            self._get_version()                
             log.info('Read protection: {bytes}'.format(bytes=self._read_protection_bytes))
+        except NotImplementedError as e:
+            pass
         
-        if self._supported_commands[CMD_GET_ID]['support']:
-    
+        try:
             self._get_id()
             
             try:
@@ -163,22 +175,26 @@ class STM32Protocol(AbstractProtocol):
                 name = 'Unknown CHIP ID'
                 
             log.info('Chip ID: {hexid} - {name}'.format(hexid=self._chip_id, name=name))
+        except NotImplementedError as e:
+            pass
         
     def _disconnect(self):
         pass
     
+    @_check_support(CMD_GO)
     def _go(self, address):
-        if not self._supported_commands[CMD_GO]['support']:
-            raise Exception('No support GO command')
         self._send_data(CMD_GO, struct.pack(">I", address))        
         self._wait_for_ack(CMD_GO)
-        
+    
+    @_check_support(CMD_ERASE)
     def _erase(self):
-        if not self._supported_commands[CMD_ERASE]['support']:
-            raise Exception('No support ERASE command')
         self._send_data(CMD_ERASE, (0xFF,))        
         self._wait_for_ack(CMD_ERASE)
         self._wait_for_ack(CMD_ERASE, timeout=30.0)
-        
     
+    @_check_support(CMD_WRITE_MEMORY)  
+    def _write(self, address, data):
+        self._send_data(CMD_WRITE_MEMORY, (0xFF,))        
+        self._wait_for_ack(CMD_WRITE_MEMORY)
+
         
