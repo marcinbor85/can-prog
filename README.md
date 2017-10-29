@@ -16,7 +16,7 @@
 - [ ] TDD tests
 
 ## Usage:
-# General usage + configuration
+### General usage + configuration
 ```
 usage: canprog [-h] [--verbose] [--version] [-n NAME] [-i {socketcan}]
                [-f {hex,bin}]
@@ -38,7 +38,7 @@ protocols:
   {stm32}
     stm32         STM32 ROM bootloader
 ```
-# STM32 bootloader options
+### STM32 bootloader options
 ```
 usage: canprog stm32 [-h] {write,read,erase,go,lock,unlock} ...
 
@@ -54,14 +54,14 @@ commands:
     lock                enable readout protection
     unlock              disable readout protection
 ```
-# Usage examples:
+### Usage examples:
 ```
 canprog stm32 write image.hex
 canprog -f bin stm32 write image.bin -a 0x08000000
 canprog stm32 lock
 canprog stm32 erase -P 0 1 2 3
 ```
-# Example output:
+### Example output:
 ```
 [13:41:25.931] main INFO: Connecting target
 [13:41:25.935] stm32 INFO: Bootloader initialized
