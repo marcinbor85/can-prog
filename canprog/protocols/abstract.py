@@ -1,11 +1,11 @@
 '''
 Created on 23.10.2017
 
-@author: mborowicz
+@author: Marcin Borowicz <marcinbor85@gmail.com>
+
 '''
 
 import can 
-
 import sys
 import time
 
@@ -52,7 +52,7 @@ class AbstractProtocol(object):
 
     def __init__(self, iface):
         if not isinstance(iface, can.BusABC):
-            raise Exception('canbus interface not compatible')
+            raise TypeError('canbus interface not compatible')
         self._iface = iface
         
     def _send(self, msg):
@@ -108,17 +108,23 @@ class AbstractProtocol(object):
         except AttributeError as e:
             raise NotImplementedError('Write method not implemented')
     
-    def erase(self):
+    def erase(self, pages):
         try:
-            self._erase()
+            self._erase(pages)
         except AttributeError as e:
             raise NotImplementedError('Erase method not implemented')
         
     def lock(self):
-        raise NotImplementedError('not implemented yet')
+        try:
+            self._lock()
+        except AttributeError as e:
+            raise NotImplementedError('Lock method not implemented')
     
     def unlock(self):
-        raise NotImplementedError('not implemented yet')
+        try:
+            self._unlock()
+        except AttributeError as e:
+            raise NotImplementedError('Unlock method not implemented')
     
     def go(self, address):
         try:
