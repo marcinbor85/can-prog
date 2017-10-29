@@ -109,4 +109,3 @@ canprog stm32 erase -P 0 1 2 3
 [13:41:28.074] main INFO: Disconnecting target
 [13:41:28.074] main INFO: Disconnected
 ```
-
