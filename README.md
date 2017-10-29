@@ -16,7 +16,8 @@
 - [ ] TDD tests
 
 ## Usage:
-`
+# General usage + configuration
+```
 usage: canprog [-h] [--verbose] [--version] [-n NAME] [-i {socketcan}]
                [-f {hex,bin}]
                {stm32} ...
@@ -36,8 +37,9 @@ configuration:
 protocols:
   {stm32}
     stm32         STM32 ROM bootloader
-`
-`    
+```
+# STM32 bootloader options
+```
 usage: canprog stm32 [-h] {write,read,erase,go,lock,unlock} ...
 
 others:
@@ -51,4 +53,38 @@ commands:
     go                  start program application
     lock                enable readout protection
     unlock              disable readout protection
-`
+```
+# Usage examples:
+```
+canprog stm32 write image.hex
+canprog -f bin stm32 write image.bin -a 0x08000000
+canprog stm32 lock
+canprog stm32 erase -P 0 1 2 3
+```
+# Example output:
+```
+[13:41:25.931] main INFO: Connecting target
+[13:41:25.935] stm32 INFO: Bootloader initialized
+[13:41:25.944] stm32 INFO: Bootloader version: 2.0
+[13:41:25.947] stm32 INFO: Read protection: 0x0000
+[13:41:25.950] stm32 INFO: Chip ID: 0x0413 - STM32F40xxx/41xxx
+[13:41:25.950] main INFO: Connected
+[13:41:25.958] main INFO: Writing memory at 0x08000000:6548
+[13:41:25.958] stm32 INFO: Progress: 0%
+[13:41:26.201] stm32 INFO: Progress: 11%
+[13:41:26.429] stm32 INFO: Progress: 23%
+[13:41:26.657] stm32 INFO: Progress: 35%
+[13:41:26.895] stm32 INFO: Progress: 46%
+[13:41:27.136] stm32 INFO: Progress: 58%
+[13:41:27.371] stm32 INFO: Progress: 70%
+[13:41:27.617] stm32 INFO: Progress: 82%
+[13:41:27.908] stm32 INFO: Progress: 93%
+[13:41:28.065] stm32 INFO: Progress: 100%
+[13:41:28.065] main INFO: Successful
+[13:41:28.065] main INFO: Writing memory at 0x08004000:16
+[13:41:28.065] stm32 INFO: Progress: 0%
+[13:41:28.074] stm32 INFO: Progress: 100%
+[13:41:28.074] main INFO: Successful
+[13:41:28.074] main INFO: Disconnecting target
+[13:41:28.074] main INFO: Disconnected
+```
