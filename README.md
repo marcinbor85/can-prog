@@ -73,6 +73,7 @@ commands:
 ```
 canprog stm32 write image.hex
 canprog -f bin stm32 write image.bin -a 0x08000000
+canprof stm32 read dump.hex -s 0x200
 canprog stm32 lock
 canprog stm32 erase -P 0 1 2 3
 ```
