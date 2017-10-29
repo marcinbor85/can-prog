@@ -24,3 +24,31 @@
 # THE SOFTWARE.
 #
 
+import os
+from setuptools import setup
+
+from canprog import __version__, __appname__, __description__
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+setup(
+    name = __appname__,
+    version = __version__,
+    author = "Marcin Borowicz",
+    author_email = "marcinbor85@gmail.com",
+    description = (__description__),
+    license = "MIT",
+    keywords = "bootloader socketcan can stm32",
+    url = "https://github.com/marcinbor85/CAN-Prog",
+    packages=['canprog', 'canprog.protocols', 'canprog.tests'],
+    long_description=read('README.md'),
+    install_requires=[
+        "intelhex",
+    ],
+    entry_points={
+          'console_scripts': [
+              'canprog = canprog.main:main'
+          ]
+      },
+)
