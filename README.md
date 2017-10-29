@@ -32,7 +32,7 @@ ip link set up slcan0
 
 ### App instalation
 ```
-sudo python setup.py install
+sudo pip install canprog
 ```
 
 ## Usage:
