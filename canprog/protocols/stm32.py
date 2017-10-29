@@ -1,16 +1,16 @@
 '''
 Created on 23.10.2017
 
-@author: mborowicz
+@author: Marcin Borowicz <marcinbor85@gmail.com>
+
 '''
-from . import AbstractProtocol
 
 import can
-
 import struct
 
+from . import AbstractProtocol
+
 from canprog.logger import log
-from can.interfaces.usb2can import timeout
 
 CMD_GET_COMMANDS = 0x00
 CMD_GET_VERSION = 0x01
@@ -25,27 +25,68 @@ CMD_WRITE_UNPROTECT = 0x73
 CMD_READOUT_PROTECT = 0x82
 CMD_READOUT_UNPROTECT = 0x92
 
+MASSERASE_MAX_TIMEOUT = 30.0
+UNPROTECT_MAX_TIMEOUT = 2.0
+
 BYTE_ACK = 0x79
 BYTE_NOACK = 0x1F
 BYTE_INIT = 0x79
 BYTE_DATA = 0x04
 
-CHIP_ID = {0x412: "STM32F Low-density",
-           0x410: "STM32F Medium-density",
-           0x414: "STM32F High-density",
-           0x418: "STM32F Connectivity line",
-           0x420: "STM32F Low/Medium-density VL",
-           0x428: "STM32F High-density VL",
-           0x430: "STM32F XL-density",
-           0x416: "STM32L Medium-density",
-           0x436: "STM32L High-density",
-           0x440: "STM32F051x",
-           0x411: "STM32F2xx",
-           0x413: "STM32F4xx",
-           0x427: "STM32L Medium-density Plus",
-           0x422: "STM32F30x & F31x",
-           0x432: "STM32F37x & F38x",
-           0x444: "STM32F050x"} 
+CHIP_ID = { 0x440: "STM32F05xxx & STM32F030x8",
+            0x444: "STM32F03xx4/6",
+            0x442: "STM32F030xC",
+            0x445: "STM32F04xxx & STM32F070x6",
+            0x448: "STM32F070xB & STM32F071xx/072xx",
+            0x442: "STM32F09xxx",
+            
+            0x412: "STM32F10xxx Low-density",
+            0x410: "STM32F10xxx Medium-density",
+            0x414: "STM32F10xxx High-density",
+            0x420: "STM32F10xxx Medium-density VL",
+            0x428: "STM32F10xxx High-density VL",
+            0x418: "STM32F105xx/107xx",
+            0x430: "STM32F10xxx XL-density",
+            
+            0x411: "STM32F2xxxx",
+            
+            0x432: "STM32F373xx & STM32F378xx",
+            0x422: "STM32F302xB(C)/303xB(C) & STM32F358xx",
+            0x439: "STM32F301xx/302x4(6/8) & STM32F318xx",
+            0x438: "STM32F303x4(6/8)/334xx/328xx",
+            0x446: "STM32F302xD(E)/303xD(E) & STM32F398xx",
+            
+            0x413: "STM32F40xxx/41xxx",
+            0x419: "STM32F42xxx/43xxx",
+            0x423: "STM32F401xB(C)",
+            0x433: "STM32F401xD(E)",
+            0x458: "STM32F410xx",
+            0x431: "STM32F411xx",
+            0x441: "STM32F412xx",
+            0x421: "STM32F446xx",
+            0x434: "STM32F469xx/479xx",
+            0x463: "STM32F413xx/423xx",
+            
+            0x452: "STM32F72xxx/73xxx",
+            0x449: "STM32F74xxx/75xxx",
+            0x451: "STM32F76xxx/77xxx",
+            
+            0x450: "STM32H74xxx/75xxx",
+            
+            0x457: "STM32L01xxx/02xxx",
+            0x425: "STM32L031xx/041xx",
+            0x417: "STM32L05xxx/06xxx",
+            0x447: "STM32L07xxx/08xxx",
+            0x416: "STM32L1xxx6(8/B)",
+            0x429: "STM32L1xxx6(8/B)A",
+            0x427: "STM32L1xxxC",
+            0x436: "STM32L1xxxD",
+            0x437: "STM32L1xxxE",
+            
+            0x435: "STM32L43xxx/44xxx",
+            0x462: "STM32L45xxx/46xxx",
+            0x415: "STM32L47xxx/48xxx",
+            0x461: "STM32L496xx/4A6xx",} 
 
 def _check_support(cmd):
     def func_wrapper(function):
@@ -183,26 +224,53 @@ class STM32Protocol(AbstractProtocol):
     def _disconnect(self):
         pass
     
+    def _wait_ack(self, cmd, seconds=30):
+        i = 1
+        while True:
+            try:
+                self._wait_for_ack(cmd, timeout=1.0)
+                break
+            except TimeoutError as e:
+                log.info('Waiting... {}s'.format(i))
+                if i >= seconds:
+                    raise
+                else:                    
+                    i += 1
+    
     @_check_support(CMD_GO)
     def _go(self, address):
         self._send_data(CMD_GO, struct.pack(">I", address))        
         self._wait_for_ack(CMD_GO)
-    
-    @_check_support(CMD_ERASE)
-    def _erase(self):
-        self._send_data(CMD_ERASE, (0xFF,))        
+        
+    @_check_support(CMD_READOUT_PROTECT)
+    def _lock(self):
+        self._send_data(CMD_READOUT_PROTECT)
+        self._wait_for_ack(CMD_READOUT_PROTECT)
+        self._wait_ack(CMD_READOUT_PROTECT, UNPROTECT_MAX_TIMEOUT)
+        
+    @_check_support(CMD_READOUT_UNPROTECT)
+    def _unlock(self):
+        self._send_data(CMD_READOUT_UNPROTECT)
+        self._wait_for_ack(CMD_READOUT_UNPROTECT)
+        self._wait_ack(CMD_READOUT_UNPROTECT, MASSERASE_MAX_TIMEOUT)
+        
+    def _erase_page(self, p):
+        self._send_data(CMD_ERASE, (p,))        
         self._wait_for_ack(CMD_ERASE)
-        i = 1
-        while True:
-            try:
-                self._wait_for_ack(CMD_ERASE, timeout=1.0)
-                break
-            except TimeoutError as e:
-                log.info('Waiting... {}s'.format(i))
-                if i >= 30:
-                    raise
-                else:                    
-                    i += 1
+        self._wait_ack(CMD_ERASE, MASSERASE_MAX_TIMEOUT)
+                    
+    @_check_support(CMD_ERASE)
+    def _erase(self, pages):
+        if len(pages) == 0:
+            log.info('Mass erasing. Please wait..')
+            self._erase_page(0xFF);
+        else:
+            for p in pages:
+                log.info('Erasing sector {:02X}'.format(p))
+                self._send_data(CMD_ERASE, (0,))        
+                self._wait_for_ack(CMD_ERASE)
+                self._erase_page(p);
+                
     
     @_check_support(CMD_WRITE_MEMORY)  
     def _write(self, address, data):
@@ -212,10 +280,10 @@ class STM32Protocol(AbstractProtocol):
         for i in range(0, size, 256):
             p = int(100.0 * i / size)
             if (last_p == -1) or (p - last_p >= 10):
-                log.info('Progress: {}% / 100%'.format(p))
+                log.info('Progress: {}%'.format(p))
                 last_p = p
             self._write_page(address+i, data[i:i+256])
-        log.info('Progress: 100% / 100%')
+        log.info('Progress: 100%')
     
     def _write_page(self, address, data):
         size = len(data)
@@ -226,13 +294,20 @@ class STM32Protocol(AbstractProtocol):
             self._send_data(BYTE_DATA, data[i:i+8])      
             self._wait_for_ack(CMD_WRITE_MEMORY)
         
-        self._wait_for_ack(CMD_WRITE_MEMORY)
+        self._wait_for_ack(CMD_WRITE_MEMORY)        
         
     @_check_support(CMD_READ_MEMORY)  
     def _read(self, address, size):
 
+        total = size
+        last_p = -1
         data = bytearray()
         while size > 0:
+            p = int(100.0 * (total-size) / total)
+            if (last_p == -1) or (p - last_p >= 10):
+                log.info('Progress: {}%'.format(p))
+                last_p = p
+                
             to_read = min(256, size)
             
             page = self._read_page(address, to_read)
@@ -240,6 +315,8 @@ class STM32Protocol(AbstractProtocol):
             
             address += to_read
             size -= to_read
+        
+        log.info('Progress: 100%')
         
         return data
     
