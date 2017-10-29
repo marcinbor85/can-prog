@@ -15,6 +15,21 @@
 - [ ] Memory write protect/unprotect (form STM32)
 - [ ] TDD tests
 
+## Requirements
+- Compatible PC CAN-BUS adapter 
+- Linux + Python3
+- Enabled SocketCAN driver
+- Board with STM32 with CAN interface
+
+### Driver instalation
+```
+modprobe can
+modprobe can-raw
+modprobe slcan
+slcand -o -c -f -s4 /dev/ttyUSB0 slcan0
+ip link set up slcan0
+```
+
 ## Usage:
 ### General usage + configuration
 ```
