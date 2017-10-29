@@ -69,6 +69,7 @@ def config_parser():
     parser_command = subparsers_stm32.add_parser('lock', help='enable readout protection')
     parser_command = subparsers_stm32.add_parser('unlock', help='disable readout protection')
     
+    """
     parser_simple = subparsers.add_parser('simple', help='Simple bootloader')
     parser_simple._optionals.title = 'others' 
      
@@ -79,7 +80,8 @@ def config_parser():
     parser_command = subparsers_simple.add_parser('write', help='write file to target')
     group = parser_command.add_argument_group('read options')
     group.add_argument('input', action='store', help='input filename')
-
+    """
+    
     return parser
 
 def connect(protocol):
