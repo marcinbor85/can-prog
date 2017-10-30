@@ -42,9 +42,20 @@ setup(
     keywords = "bootloader socketcan can stm32",
     url = "https://github.com/marcinbor85/CAN-Prog",
     packages=['canprog', 'canprog.protocols', 'canprog.tests'],
-    long_description=read('README.md'),
+    long_description=read('DESCRIPTION'),
     install_requires=[
         "intelhex",
+    ],
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "License :: OSI Approved :: MIT License",
+        "Intended Audience :: Telecommunications Industry",
+        "Environment :: Console",
+        "Natural Language :: English",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3.6",
+        "Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator",
+        "Topic :: Software Development :: Embedded Systems",
     ],
     entry_points={
           'console_scripts': [
