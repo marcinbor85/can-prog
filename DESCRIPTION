@@ -1,0 +1,166 @@
+--------
+CAN-Prog
+--------
+
+Command-line tool to flashing devices by CAN-BUS.
+
+Author: Marcin Borowicz
+Contact: marcinbor85 at gmail com
+Date: 2017/10/30
+Version: 0.1.0a0
+
+License
+-------
+
+The MIT License (MIT)
+
+Copyright (c) 2017 Marcin Borowicz <marcinbor85@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Download
+--------
+* https://pypi.python.org/pypi/canprog
+* https://github.com/marcinbor85/CAN-Prog
+
+Install
+-------
+Install using pip (no separate download required):
+
+    pip install canprog
+
+Install from sources (classic python's magic spell):
+
+    python setup.py install
+
+Source code
+-----------
+IntelHex on GitHub:
+
+    https://github.com/marcinbor85/CAN-Prog
+    
+Get code with git:
+
+    git clone hhttps://github.com/marcinbor85/CAN-Prog.git
+
+Main features
+-------------
+- Support STM32 CAN-BUS ROM bootloader
+- Easily expand with other CAN-BUS protocols
+- Support iHEX and binary format files
+- Object oriented architecture
+- Command-line interface
+- Socket-CAN driver for CAN-BUS low level operations
+
+Driver instalation
+------------------
+	modprobe can
+	modprobe can-raw
+	modprobe slcan
+	slcand -o -c -f -s4 /dev/ttyUSB0 slcan0
+	ip link set up slcan0
+
+General usage
+-------------
+	usage: canprog [-h] [--verbose] [--version] [-n NAME] [-i {socketcan}]
+	               [-f {hex,bin}]
+	               {stm32} ...
+	
+	Command-line tool to flashing devices by CAN-BUS.
+	
+	others:
+	  -h, --help      show this help message and exit
+	  --verbose       enable verbose output
+	  --version       show program's version number and exit
+	
+	configuration:
+	  -n NAME         interface name (default: slcan0)
+	  -i {socketcan}  interface type (default: socketcan)
+	  -f {hex,bin}    file format (default: hex)
+	
+	protocols:
+	  {stm32}
+	    stm32         STM32 ROM bootloader
+	    
+STM32 bootloader options
+------------------------
+	usage: canprog stm32 [-h] {write,read,erase,go,lock,unlock} ...
+	
+	others:
+	  -h, --help            show this help message and exit
+	
+	commands:
+	  {write,read,erase,go,lock,unlock}
+	    write               write file to target memory
+	    read                read target memory to file
+	    erase               erase target memory
+	    go                  start program application
+	    lock                enable readout protection
+	    unlock              disable readout protection
+	    
+Examples
+--------
+
+Write image.hex to device
+
+	canprog stm32 write image.hex
+
+Write image.bin to device at specified address
+
+	canprog -f bin stm32 write image.bin -a 0x08000000
+	
+Read data from device as hex image
+
+	canprog stm32 read dump.hex -s 0x200
+	
+Readout protection
+
+	canprog stm32 lock
+	
+Erase device memory (first 4 segments)
+
+	canprog stm32 erase -P 0 1 2 3
+
+Example output
+--------------
+	[13:41:25.931] main INFO: Connecting target
+	[13:41:25.935] stm32 INFO: Bootloader initialized
+	[13:41:25.944] stm32 INFO: Bootloader version: 2.0
+	[13:41:25.947] stm32 INFO: Read protection: 0x0000
+	[13:41:25.950] stm32 INFO: Chip ID: 0x0413 - STM32F40xxx/41xxx
+	[13:41:25.950] main INFO: Connected
+	[13:41:25.958] main INFO: Writing memory at 0x08000000:6548
+	[13:41:25.958] stm32 INFO: Progress: 0%
+	[13:41:26.201] stm32 INFO: Progress: 11%
+	[13:41:26.429] stm32 INFO: Progress: 23%
+	[13:41:26.657] stm32 INFO: Progress: 35%
+	[13:41:26.895] stm32 INFO: Progress: 46%
+	[13:41:27.136] stm32 INFO: Progress: 58%
+	[13:41:27.371] stm32 INFO: Progress: 70%
+	[13:41:27.617] stm32 INFO: Progress: 82%
+	[13:41:27.908] stm32 INFO: Progress: 93%
+	[13:41:28.065] stm32 INFO: Progress: 100%
+	[13:41:28.065] main INFO: Successful
+	[13:41:28.065] main INFO: Writing memory at 0x08004000:16
+	[13:41:28.065] stm32 INFO: Progress: 0%
+	[13:41:28.074] stm32 INFO: Progress: 100%
+	[13:41:28.074] main INFO: Successful
+	[13:41:28.074] main INFO: Disconnecting target
+	[13:41:28.074] main INFO: Disconnected
+
