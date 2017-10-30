@@ -1,5 +1,7 @@
 # canprog
 
+Command-line tool to flashing devices by CAN-BUS.
+
 ## Main features
 - Support STM32 CAN-BUS ROM bootloader
 - Easily expand with other CAN-BUS protocols
