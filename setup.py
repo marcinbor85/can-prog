@@ -30,7 +30,9 @@ from setuptools import setup
 from canprog import __version__, __appname__, __description__
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+        content = f.read()
+    return content
 
 setup(
     name = __appname__,
