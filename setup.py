@@ -44,7 +44,7 @@ setup(
     packages=['canprog', 'canprog.protocols', 'canprog.tests'],
     long_description=read('DESCRIPTION'),
     install_requires=[
-        "intelhex",
+        "intelhex", "python-can",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
