@@ -349,6 +349,17 @@ class STM32Protocol(AbstractProtocol):
         self._wait_for_ack(CMD_READ_MEMORY)
         
         return page
-        
 
-        
+    def _speed(self, bps):
+        if bps == 125000:
+            code = 1
+        elif bps == 250000:
+            code = 2
+        elif bps == 500000:
+            code = 3
+        elif bps == 1000000:
+            code = 4
+        else:
+            raise NotImplementedError('Unsupported speed %d bps' % (bps,))
+
+        self._send_data(CMD_CHANGE_SPEED, struct.pack(">B", code))
