@@ -26,6 +26,7 @@
 
 import argparse
 import can
+import sys
 
 from canprog import __version__, __appname__, __description__
 from canprog import protocols
@@ -234,6 +235,7 @@ def main():
             log.info('Nothing to do...')
         
         disconnect(protocol)
+        sys.exit(0)
     except ValueError as e:
         log.error(e)
     except ConnectionError as e:
@@ -241,3 +243,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+    sys.exit(1)
+    
