@@ -89,7 +89,11 @@ def config_parser():
     
     parser_command = subparsers_stm32.add_parser('lock', help='enable readout protection')
     parser_command = subparsers_stm32.add_parser('unlock', help='disable readout protection')
-    
+
+    parser_command = subparsers_stm32.add_parser('speed', help='change the can baud rate the boot rom uses')
+    group = parser_command.add_argument_group('arguments')
+    group.add_argument('bps', action='store', type=lambda x: int(x), help='new baud rate')
+
     """
     parser_simple = subparsers.add_parser('simple', help='Simple bootloader')
     parser_simple._optionals.title = 'others' 
@@ -185,6 +189,14 @@ def unlock(protocol):
     except TimeoutError as e:
         raise ConnectionError('Disabling error: '+str(e))                      
 
+def speed(protocol, bps):
+    try:
+        log.info('Setting speed to %d bps' % (bps,))
+        protocol.speed(bps)
+        log.info('Command sent')
+    except TimeoutError as e:
+        raise ConnectionError('Writing error: '+str(e))
+
 def main():
     
     parser = config_parser()
@@ -231,6 +243,8 @@ def main():
             lock(protocol)
         elif params.command == 'unlock':
             unlock(protocol)            
+        elif params.command == 'speed':
+            speed(protocol, params.bps)
         else:
             log.info('Nothing to do...')
         

@@ -148,4 +148,9 @@ class AbstractProtocol(object):
             self._go(address)
         except AttributeError as e:
             raise NotImplementedError('Go method not implemented')
- 
+
+    def speed(self, bps):
+        try:
+            self._speed(bps)
+        except AttributeError as e:
+            raise NotImplementedError('Speed method not implemented')
