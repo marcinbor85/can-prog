@@ -75,6 +75,7 @@ commands:
     go                  start program application
     lock                enable readout protection
     unlock              disable readout protection
+    speed               change the can baud rate the boot rom uses
 ```
 ### Usage examples:
 ```
