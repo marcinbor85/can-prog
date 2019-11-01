@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 
-__version__ = '0.1.3'
+__version__ = '0.2.0'
 __appname__ = 'canprog'
 __description__ = 'Command-line tool to flashing devices by CAN-BUS.'
 
